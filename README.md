@@ -41,6 +41,14 @@ Writes to `0x04 0x05 0x06 0x08 0xB0 0xD6` (factory reset / power) are refused un
 
 Run `Off` at logon with Task Scheduler if the setting doesn't persist across power cycles.
 
+## Turning the monitor off from a script
+```powershell
+.\samsung-led.ps1 MonitorOff
+```
+Verified on one LC32G7xT: this sends VCP `0xD6 = 4` and the monitor powers off (value 5 did not do it, and
+`Get -Code 0xD6` reads back as 255). The monitor can't be woken over DDC/CI, so use the JOG/power button.
+If it ever fails to wake, unplug the power cord for ~30 seconds.
+
 ## Hardware option: disconnecting the LED (not verified for this model)
 **No verified teardown exists for the LC32G7xT, and this section has not been tested.** It voids the warranty
 and risks damaging the monitor, so treat it as an outline only, not step-by-step instructions.

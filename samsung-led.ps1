@@ -13,6 +13,7 @@
     Get -Code 0xNN             Read one code.
     Set -Code 0xNN -Value N    Write one code.
     Off / On                   Write the values stored in led-config.json.
+    MonitorOff                 Power the monitor off (VCP 0xD6 = 4). Wake it with the JOG/power button.
 
   Finding the LED code
     1. Set "Power LED On" in the monitor menu so the LED is lit, then:  .\samsung-led.ps1 Snapshot -Out led-lit.json
@@ -23,7 +24,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('List', 'Snapshot', 'Diff', 'Get', 'Set', 'Off', 'On')]
+    [ValidateSet('List', 'Snapshot', 'Diff', 'Get', 'Set', 'Off', 'On', 'MonitorOff')]
     [string]$Action,
     [int]$Monitor = 0,
     [string]$Code,
@@ -153,6 +154,11 @@ try {
         'Set' {
             if (-not $Code -or -not $Value) { throw 'Set needs -Code and -Value.' }
             Write-Vcp (ConvertTo-Byte $Code) ([uint32]$Value)
+        }
+        'MonitorOff' {
+            # Verified on a real LC32G7xT: 0xD6 = 4 powers the monitor off. 0xD6 reads back as 255, so don't rely on Get.
+            if (-not [Ddc]::Set($Monitor, 0xD6, 4)) { throw 'Writing 0xD6 = 4 failed.' }
+            Write-Host 'Sent power-off (0xD6 = 4). Press the JOG/power button to wake the monitor.'
         }
         { $_ -in 'Off', 'On' } {
             if (-not (Test-Path $Config)) { throw "Config not found: $Config (copy led-config.example.json to led-config.json and fill it in)." }
